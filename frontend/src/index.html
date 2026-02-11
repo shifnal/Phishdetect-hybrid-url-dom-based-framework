@@ -7,6 +7,7 @@
 <title>PhishDetect</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 tailwind.config = {
@@ -26,38 +27,16 @@ tailwind.config = {
 </script>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body {
-  background: radial-gradient(circle at top left, #120c2e, #070b14 60%);
-}
-
-.glass {
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.15);
-}
-
-.progress-container {
-  height: 14px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  width: 0%;
-  transition: width 1.1s ease;
-  border-radius: 9999px;
-}
-
+body { background: radial-gradient(circle at top left, #120c2e, #070b14 60%); }
+.glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.15); }
+.progress-container { height: 14px; background: rgba(255,255,255,0.15); border-radius: 9999px; overflow: hidden; }
+.progress-bar { height: 100%; width: 0%; transition: width 1s ease; border-radius: 9999px; }
 #urlScore { background: linear-gradient(90deg,#00f2ff,#7f00ff); }
 #domScore { background: linear-gradient(90deg,#7f00ff,#ff7d00); }
 #visualScore { background: linear-gradient(90deg,#ff7d00,#00f2ff); }
 #hybridScore { background: linear-gradient(90deg,#00ff9d,#00f2ff); }
-
 .text-legit { color:#00ff9d; }
 .text-phish { color:#ff0055; }
 </style>
@@ -67,7 +46,9 @@ body {
 
 <header class="pt-14 pb-10 text-center">
   <h1 class="text-5xl font-black text-cyber-primary">PhishDetect</h1>
-  <p class="text-slate-400 mt-2">Hybrid URL–DOM–Visual Phishing Detection Framework</p>
+  <p class="text-slate-400 mt-2">
+    Hybrid URL – DOM – Visual Phishing Detection Framework
+  </p>
 </header>
 
 <main class="max-w-6xl mx-auto px-6">
@@ -84,44 +65,61 @@ body {
 
 <section id="results" class="space-y-10 hidden">
 
+<!-- Brand -->
 <div class="text-center">
   <span class="px-6 py-2 glass rounded-full text-sm">
     Detected Brand: <b id="detectedBrand">—</b>
   </span>
 </div>
 
+<!-- Scores -->
 <div class="grid md:grid-cols-4 gap-6">
 
 <div class="glass p-5 rounded-2xl">
-  <h3 class="font-semibold mb-3">URL Analysis</h3>
+  <h3 class="font-semibold mb-1">URL Analysis</h3>
+  <p class="text-xs text-slate-400 mb-2">Lexical & ML-based URL risk</p>
   <div class="progress-container"><div id="urlScore" class="progress-bar"></div></div>
-  <p class="mt-3 text-center font-bold" id="urlValue">0%</p>
+  <p class="mt-2 text-center font-bold" id="urlValue">0%</p>
 </div>
 
 <div class="glass p-5 rounded-2xl">
-  <h3 class="font-semibold mb-3">DOM Similarity</h3>
+  <h3 class="font-semibold mb-1">DOM Similarity</h3>
+  <p class="text-xs text-slate-400 mb-2">Structure & tag comparison</p>
   <div class="progress-container"><div id="domScore" class="progress-bar"></div></div>
-  <p class="mt-3 text-center font-bold" id="domValue">0%</p>
+  <p class="mt-2 text-center font-bold" id="domValue">0%</p>
 </div>
 
 <div class="glass p-5 rounded-2xl">
-  <h3 class="font-semibold mb-3">Visual Similarity</h3>
+  <h3 class="font-semibold mb-1">Visual Similarity</h3>
+  <p class="text-xs text-slate-400 mb-2">Layout & UI resemblance</p>
   <div class="progress-container"><div id="visualScore" class="progress-bar"></div></div>
-  <p class="mt-3 text-center font-bold" id="visualValue">0%</p>
+  <p class="mt-2 text-center font-bold" id="visualValue">0%</p>
 </div>
 
 <div class="glass p-5 rounded-2xl border border-cyber-accent">
-  <h3 class="font-semibold mb-3">Hybrid Trust</h3>
+  <h3 class="font-semibold mb-1">Phishing Probability</h3>
+  <p class="text-xs text-slate-400 mb-2">Rule-based hybrid score</p>
   <div class="progress-container"><div id="hybridScore" class="progress-bar"></div></div>
-  <p class="mt-3 text-center font-bold" id="hybridValue">0%</p>
+  <p class="mt-2 text-center font-bold" id="hybridValue">0%</p>
 </div>
 
 </div>
 
+<!-- Chart -->
 <div class="glass p-6 rounded-2xl">
   <canvas id="comparisonChart" height="130"></canvas>
 </div>
 
+<!-- Explanation -->
+<div class="glass p-6 rounded-2xl space-y-3 text-sm text-slate-300">
+  <h3 class="font-semibold text-slate-100">Decision Explanation</h3>
+  <p id="explainUrl">• URL Score: —</p>
+  <p id="explainDom">• DOM Similarity: —</p>
+  <p id="explainVisual">• Visual Similarity: —</p>
+  <p id="explainHybrid">• Hybrid Logic: —</p>
+</div>
+
+<!-- Final Verdict -->
 <div class="glass p-8 rounded-2xl text-center border-2" id="resultCard">
   <h2 class="text-sm tracking-widest text-slate-400 mb-2">FINAL VERDICT</h2>
   <div id="finalLabel" class="text-4xl font-black">—</div>
@@ -134,7 +132,8 @@ body {
 let chart;
 
 document.addEventListener("DOMContentLoaded", () => {
-  chart = new Chart(comparisonChart, {
+  const ctx = document.getElementById("comparisonChart").getContext("2d");
+  chart = new Chart(ctx, {
     type: "bar",
     data: {
       labels: ["URL", "DOM", "Visual", "Hybrid"],
@@ -154,9 +153,8 @@ document.addEventListener("DOMContentLoaded", () => {
 urlForm.addEventListener("submit", async e => {
   e.preventDefault();
 
-  const btn = analyzeBtn;
-  btn.textContent = "Analyzing...";
-  btn.disabled = true;
+  analyzeBtn.textContent = "Analyzing...";
+  analyzeBtn.disabled = true;
 
   try {
     const res = await fetch("/predict", {
@@ -167,39 +165,56 @@ urlForm.addEventListener("submit", async e => {
 
     const d = await res.json();
 
-    const urlP = Math.round(d.url_score * 100);
-    const domP = Math.round(d.dom_score * 100);
-    const visP = Math.round(d.visual_score * 100);
-    const hybridP = Math.round(d.hybrid_score * 100); // ✅ FIXED
+    const urlP = Math.round(d.url_score*100);
+    const domP = Math.round(d.dom_score*100);
+    const visP = Math.round(d.visual_score*100);
+    const hybridP = Math.round(d.hybrid_score*100);
 
     results.classList.remove("hidden");
+    detectedBrand.textContent = d.brand || "None";
 
     setBar("urlScore","urlValue",urlP);
     setBar("domScore","domValue",domP);
     setBar("visualScore","visualValue",visP);
     setBar("hybridScore","hybridValue",hybridP);
 
-    detectedBrand.textContent = d.brand || "None";
-
     chart.data.datasets[0].data = [urlP, domP, visP, hybridP];
-    chart.update();
+    chart.options.scales.y.max = 100;
+    chart.update("none");
 
     finalLabel.textContent = hybridP > 50 ? "PHISHING" : "LEGITIMATE";
-    finalLabel.className = hybridP > 50
-      ? "text-phish text-4xl font-black"
-      : "text-legit text-4xl font-black";
+    finalLabel.className = "";
+    finalLabel.classList.add(
+      hybridP > 50 ? "text-phish" : "text-legit",
+      "text-4xl","font-black"
+    );
 
-  } catch (err) {
-    alert("Prediction failed. Check backend.");
+    explainUrl.textContent =
+      `• URL Score (${urlP}%): Suspicious patterns & lexical features`;
+    explainDom.textContent =
+      `• DOM Similarity (${domP}%): Structural similarity to known brand pages`;
+    explainVisual.textContent =
+      `• Visual Similarity (${visP}%): Layout & UI resemblance`;
+    explainHybrid.textContent =
+      `• Hybrid Logic: Rule-based fusion prioritizing domain legitimacy & similarity`;
+
+  } catch {
+    alert("Prediction failed. Backend not reachable.");
   }
 
-  btn.textContent = "Analyze";
-  btn.disabled = false;
+  analyzeBtn.textContent = "Analyze";
+  analyzeBtn.disabled = false;
 });
 
 function setBar(barId, textId, value){
-  document.getElementById(barId).style.width = value + "%";
-  document.getElementById(textId).textContent = value + "%";
+  const bar = document.getElementById(barId);
+  const text = document.getElementById(textId);
+  bar.style.transition = "none";
+  bar.style.width = "0%";
+  void bar.offsetWidth;
+  bar.style.transition = "width 1s ease";
+  bar.style.width = value + "%";
+  text.textContent = value + "%";
 }
 </script>
 

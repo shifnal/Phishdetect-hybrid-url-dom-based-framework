@@ -25,8 +25,8 @@ VISUAL_ANALYZER_DIR = os.path.join(CURRENT_DIR, "..", "visual_analyzer")
 sys.path.append(DOM_ANALYZER_DIR)
 sys.path.append(VISUAL_ANALYZER_DIR)
 
-from dom_similarity import dom_score
-from visual_similarity import calculate_visual_score
+from dom_analysis import dom_score  # Fixed import to match file name
+from visual_analysis import calculate_visual_score  # Fixed import to match file name
 
 
 # =========================
@@ -136,48 +136,32 @@ def compute_visual_score(brand: str, screenshot_path: str) -> float:
 # =========================
 # MAIN FUSION FUNCTION
 # =========================
-def run_fusion(
-    url: str,
-    brand: str,
-    url_score: float,
-    screenshot_path: str = None
-) -> dict:
-    """
-    API-ready fusion function
-    Returns BOTH hybrid_score and fusion_score
-    """
+def run_fusion(url, brand, url_score, screenshot_path=None, test_dom_path=None, brand_dom_path=None):
+    d_score = 0.0
+    v_score = 0.0
+    
+    if test_dom_path and brand_dom_path:
+        d_score = dom_score(test_dom_path, brand_dom_path)
+    
+    if brand and screenshot_path:
+        # Assuming brand reference images are in a specific folder
+        brand_ref = f"static/brands/{brand}.png"
+        if os.path.exists(brand_ref):
+            v_score = calculate_visual_score(screenshot_path, brand_ref)
 
-    # Heuristic: low URL score = likely fake DOM
-    is_fake = url_score < 0.6
-
-    dom_score_val = compute_dom_score(brand, is_fake)
-
-    visual_score_val = (
-        compute_visual_score(brand, screenshot_path)
-        if screenshot_path else 0.0
-    )
-
-    features = np.array([[url_score, dom_score_val, visual_score_val]])
-
-    # Probability of LEGITIMATE
+    features = np.array([[url_score, d_score, v_score]])
+    # 1 = Legitimate, 0 = Phishing. Frontend usually wants phishing probability.
     legit_prob = float(FUSION_MODEL.predict_proba(features)[0][1])
-
-    prediction = "LEGITIMATE" if legit_prob >= 0.5 else "PHISHING"
+    phishing_prob = 1.0 - legit_prob
 
     return {
         "url": url,
         "brand": brand,
-        "url_score": round(url_score, 4),
-        "dom_score": round(dom_score_val, 4),
-        "visual_score": round(visual_score_val, 4),
-
-        # ✅ frontend-safe field
-        "hybrid_score": round(legit_prob, 4),
-
-        # ✅ backward compatibility
-        "fusion_score": round(legit_prob, 4),
-
-        "prediction": prediction,
+        "url_score": url_score,
+        "dom_score": d_score,
+        "visual_score": v_score,
+        "hybrid_score": phishing_prob, # Higher = More likely phishing
+        "prediction": "Phishing" if phishing_prob > 0.5 else "Legitimate"
     }
 
 

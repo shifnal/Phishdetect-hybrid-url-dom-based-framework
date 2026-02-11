@@ -1,28 +1,45 @@
 const fs = require("fs");
 const puppeteer = require("puppeteer");
+
 async function extractDOM(url, outputFile) {
+  console.log("PUPPETEER START:", url);
+
   const browser = await puppeteer.launch({
     headless: true,
+    executablePath: '/Users/nailaks/.cache/puppeteer/chrome/mac_arm-145.0.7632.46/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
-  const page = await browser.newPage();
-  await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
-  const domTree = await page.evaluate(() => {
-    function traverse(node) {
+
+  try {
+    const page = await browser.newPage();
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 60000 });
+
+    const domTree = await page.evaluate(() => {
+      function traverse(node) {
+        return {
+          tag: node.tagName,
+          children: [...node.children].map(traverse),
+        };
+      }
       return {
-        tag: node.tagName,
-        children: [...node.children].map(traverse),
+        title: document.title,
+        dom: traverse(document.body)
       };
-    }
-    return {
-      title: document.title,
-      dom: traverse(document.body)
-    };
-  });
-  await page.screenshot({ path: outputFile.replace('.json', '.png'), fullPage: true });
-  fs.writeFileSync(outputFile, JSON.stringify(domTree, null, 2));
-  await browser.close();
+    });
+
+    const screenshotPath = outputFile.replace('.json', '.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+
+    fs.writeFileSync(outputFile, JSON.stringify(domTree, null, 2));
+    console.log("PUPPETEER SUCCESS:", outputFile);
+
+  } catch (err) {
+    console.error("PUPPETEER ERROR:", err);
+  } finally {
+    await browser.close();
+  }
 }
+
 const url = process.argv[2];
 const outputFile = process.argv[3];
 extractDOM(url, outputFile);

@@ -1,32 +1,24 @@
-"""
-Tree Edit Distance Algorithm
-
-Calculates the structural difference between two DOM trees.
-Used to compare a test page's structure with a known brand's structure.
-"""
-
-
-def tree_edit_distance(t1: dict, t2: dict) -> int:
-    """
-    Calculate the tree edit distance between two DOM trees.
+def tree_edit_distance(t1: dict, t2: dict, depth=0) -> int:
+    # Limit depth to prevent recursion errors on massive DOMs
+    if depth > 50:
+        return 0
     
-    Args:
-        t1: First DOM tree (dict with 'tag' and 'children')
-        t2: Second DOM tree (dict with 'tag' and 'children')
-    
-    Returns:
-        int: Edit distance (lower = more similar)
-    """
-    if t1["tag"] != t2["tag"]:
-        cost = 1
-    else:
-        cost = 0
+    # Compare tags (handle missing tags safely)
+    tag1 = t1.get("tag", "").upper()
+    tag2 = t2.get("tag", "").upper()
+    cost = 1 if tag1 != tag2 else 0
     
     c1 = t1.get("children", [])
     c2 = t2.get("children", [])
+    
+    # Base structural difference
     total = abs(len(c1) - len(c2))
     
+    # Compare common children
     for child1, child2 in zip(c1, c2):
-        total += tree_edit_distance(child1, child2)
-    
+        if isinstance(child1, dict) and isinstance(child2, dict):
+            total += tree_edit_distance(child1, child2, depth + 1)
+        else:
+            total += 1
+            
     return cost + total

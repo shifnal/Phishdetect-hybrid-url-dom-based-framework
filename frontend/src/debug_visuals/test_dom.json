@@ -1,0 +1,20 @@
+{
+  "title": "",
+  "dom": {
+    "tag": "BODY",
+    "children": [
+      {
+        "tag": "DIV",
+        "children": []
+      },
+      {
+        "tag": "SCRIPT",
+        "children": []
+      },
+      {
+        "tag": "NOSCRIPT",
+        "children": []
+      }
+    ]
+  }
+}
