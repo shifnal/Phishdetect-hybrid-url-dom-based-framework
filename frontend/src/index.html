@@ -157,7 +157,9 @@ urlForm.addEventListener("submit", async e => {
   analyzeBtn.disabled = true;
 
   try {
-    fetch("/predict", {
+ const backendURL = "https://phishdetect-backend.onrender.com";
+
+const res = await fetch(`${backendURL}/predict`, {
   method:"POST",
   headers:{ "Content-Type":"application/json" },
   body: JSON.stringify({ url: url.value })
