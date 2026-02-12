@@ -61,7 +61,7 @@ app = FastAPI(
     description="Hybrid URL-DOM-Visual Phishing Detection Framework",
     version="2.0.0"
 )
-
+app.mount("/", StaticFiles(directory="../frontend/src", html=True), name="frontend")
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
