@@ -5,8 +5,7 @@ async function extractDOM(url, outputFile) {
   console.log("PUPPETEER START:", url);
 
   const browser = await puppeteer.launch({
-    headless: true,
-    executablePath: '/Users/nailaks/.cache/puppeteer/chrome/mac_arm-145.0.7632.46/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing',
+    headless: "new",
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
   });
 
