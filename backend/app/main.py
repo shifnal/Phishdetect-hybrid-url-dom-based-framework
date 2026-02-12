@@ -61,6 +61,14 @@ app = FastAPI(
     description="Hybrid URL-DOM-Visual Phishing Detection Framework",
     version="2.0.0"
 )
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["phishdetect-url-dom-hybrid-framework.netlify.app"],  # Replace with your Netlify URL
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # ---------------------------
 # Static Frontend
